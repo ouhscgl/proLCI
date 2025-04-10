@@ -5,20 +5,21 @@ from tkinter import font
 class TimerApp:
     def __init__(self, root, x_pos, y_pos, target_time):
         self.root = root
-        self.root.title("Timer")
-        self.root.geometry(f"300x150+{x_pos}+{y_pos}")  # Set window size and position
+        self.root.title("LCI")
+        self.root.geometry(f"200x50+{x_pos}+{y_pos}")  # Set window size and position
         self.root.resizable(False, False)  # Fixed window size
         
         # Configure the font for the timer display
-        self.timer_font = font.Font(family="Arial", size=24, weight="bold")
+        self.timer_font = font.Font(family="Calibri", size=18, weight="bold")
         
         # Create and set up timer display
         self.timer_display = tk.Label(root, text="00:00.00", font=self.timer_font)
-        self.timer_display.pack(pady=30)
+        self.timer_display.pack(pady=0)
         
         # Status label for instructions and notifications
-        self.status_label = tk.Label(root, text="Press Ctrl+C to start timer")
-        self.status_label.pack(pady=10)
+        self.status_label = tk.Label(root, text="Press Ctrl+C to start timer",
+                                     fg = '#808080')
+        self.status_label.pack(pady=0)
         
         # Timer variables
         self.is_running = False
@@ -110,8 +111,8 @@ class TimerApp:
 
 
 def main():
-    x_position = 100
-    y_position = 100
+    x_position = 920
+    y_position = 900
     target_time = 4.5 * 60
 
     root = tk.Tk()
