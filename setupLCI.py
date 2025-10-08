@@ -27,7 +27,7 @@ def automation_sequence(user_input):
     time.sleep(4)
     
     # Set up participant
-    pyautogui.leftClick(144, 101)
+    pyautogui.leftClick(144, 154)
     time.sleep(0.1)
     pyautogui.press('down')
     time.sleep(0.1)
@@ -106,23 +106,23 @@ def main():
     if not user_input:
         return
     
-    print("\n[1/3] Opening the PeriCam Software suit...", end='')
+    print("\n[1/3] Opening the PeriCam Software suit ...", end='')
     if open_program(PROGRAM_PATH):
-        print('DONE.')
+        print(' DONE.')
     else:
         print('\nERROR: Could not start recording software.')
         return
     
-    print("\n[2/3] Running automated setup sequence...", end='')
+    print("\n[2/3] Running automated setup sequence ...", end='')
     if automation_sequence(user_input):
-        print('DONE.')
+        print(' DONE.')
     else:
         print('\nWARNING: Could not run setup automatically.')
 
     
-    print("\n[3/3] Staring timer...", end='')
+    print("\n[3/3] Staring timer ...", end='')
     if open_program(PYTHON_SCRIPT_PATH, is_pyscript=True):
-        print('DONE.')
+        print(' DONE.')
     else:
         print('\nWARNING: Could not start timer')
     
