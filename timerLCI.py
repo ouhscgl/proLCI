@@ -116,6 +116,7 @@ def main():
     target_time = 4.5 * 60
 
     root = tk.Tk()
+    root.attributes('-topmost', True)
     app = TimerApp(root, x_position, y_position, target_time)
     root.mainloop()
 
