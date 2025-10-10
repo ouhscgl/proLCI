@@ -17,7 +17,7 @@ HOTKEY_COMBINATION = "ctrl+shift+s"
 
 # OneDrive Project Dictionary
 ONEDRIVE_DICTIONARY = {
-    'NRA' : ''
+    'NRA' : r'C:\Users\zkaposzt\OneDrive - University of Oklahoma\OUHSCGL Shared\Projects\NR Clinical Trial\data\LCI\raws'
     }
 # =======================================================
 
@@ -26,6 +26,7 @@ def automation_sequence(user_input):
     time.sleep(10)
     # Do not perform validation
     pyautogui.press('enter')
+    time.sleep(3)
     # New recording
     pyautogui.keyDown('ctrl')
     pyautogui.keyDown('n')
@@ -140,17 +141,18 @@ def main():
     # Get subject ID
     user_input = input("\nEnter subject ID (e.g.: TTE017_V1): ").strip()
     if not user_input:
-        print("  • No subject ID provided. Exiting...")
+        print("  X No subject ID provided. Exiting...")
+        time.sleep(2)
         return
-    print(f"  ✓ Subject ID: {user_input}")
+    print(f'  • Subject ID: {user_input}")
     
     # Check if device is connected
-    print("\n[1/4] Check for PeriCam device connection...", end='')
+    print("\n[1/4] Check for PeriCam device connection...")
     ans = input('  Is the device connected? [y]/n ')
-    if ans.lower() in ['\r','y']:
-        print('OK')
+    if ans.lower() in ['','y']:
+        print('  OK')
     else:
-        print("\nExiting...")
+        print("\n  Device not connected. Exiting...")
         time.sleep(2)
         return
     
@@ -159,12 +161,12 @@ def main():
     if open_program(PROGRAM_PATH):
         print(' DONE')
     else:
-        print('\n  ⚠ WARNING: PeriCam might not be running.')
+        print('\n  X WARNING: PeriCam might not be running.')
         usrin = input('  Do you want to continue? [y]/n')
-        if usrin.lower() in ['\r','y']:
-            print()
+        if usrin.lower() in ['','y']:
+            print('  OK')
         else:
-            print("\nExiting...")
+            print("\n  Pericam could not be started. Exiting...")
             time.sleep(2)
             return
     
@@ -172,13 +174,13 @@ def main():
     if automation_sequence(user_input):
         print(' DONE')
     else:
-        print('\n  ⚠ WARNING: Could not run setup automatically.')
+        print('\n  X WARNING: Could not run setup automatically.')
     
     print("\n[4/4] Starting timer ......................", end='')
     if open_program(PYTHON_SCRIPT_PATH, is_pyscript=True):
         print(' DONE')
     else:
-        print('\n  ⚠ WARNING: Could not start timer')
+        print('\n  X WARNING: Could not start timer')
     
     print(f"\nPress {HOTKEY_COMBINATION} to save clipboard output")
     print("Press 'ESC' to exit the script\n")
