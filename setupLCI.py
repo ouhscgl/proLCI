@@ -1,3 +1,4 @@
+
 import pyautogui
 import subprocess
 import time
@@ -6,7 +7,8 @@ import pyperclip
 import os
 import re
 import shutil
-
+from colorama import init, Cursor
+init()
 # ==================== CONFIGURATION ====================
 PROGRAM_PATH       = r"C:\Program Files\Perimed\PIMSoft\PIMSoft.exe"
 PYTHON_SCRIPT_PATH = 'timerLCI.py'
@@ -94,13 +96,13 @@ def open_program(program_path, is_pyscript=False, startup_wait=3, max_retries=10
             return False
         
     except FileNotFoundError:
-        print(f"\n  ✗ ERROR: Program not found at {program_path}")
+        print(f"\n  X ERROR: Program not found at {program_path}")
         return False
     except PermissionError:
-        print(f"\n  ✗ ERROR: Permission denied to execute {program_path}")
+        print(f"\n  X ERROR: Permission denied to execute {program_path}")
         return False
     except Exception as e:
-        print(f"\n  ✗ ERROR: Could not open program: {e}")
+        print(f"\n  X ERROR: Could not open program: {e}")
         return False
 
 
@@ -116,17 +118,17 @@ def save_clipboard_to_csv(user_input):
         csv_path = os.path.join(save_folder, user_input + '_LCI.csv')
         with open(csv_path, 'w', encoding='utf-8') as f:
             f.write(clipboard_content)
-        print(f"  ✓ Recording data saved to: {csv_path}")
+        print(f"  ./ Recording data saved to: {csv_path}")
         
         if BACKUP_TO_ONEDRIVE:
             dst = os.path.join(ONEDRIVE_DICTIONARY[folder_name], user_input + '_LCI.csv')
             try:
                 shutil.copy(csv_path, dst)
-                print( "  ✓ Recording data backed up to OneDrive.")
+                print( "  ./ Recording data backed up to OneDrive.")
             except Exception as e:
-                print(f"  ✗ ERROR: Failed to back up data to OneDrive: {e}")
+                print(f"  X ERROR: Failed to back up data to OneDrive: {e}")
     except Exception as e:
-        print(f"  ✗ ERROR: Failed to save recording data: {e}")
+        print(f"  X ERROR: Failed to save recording data: {e}")
 
 
 def main():
@@ -139,25 +141,28 @@ def main():
     print("=" * 60)
     
     # Get subject ID
-    user_input = input("\nEnter subject ID (e.g.: TTE017_V1): ").strip()
+    user_input = input("\n[1/5] Enter subject ID (e.g.: TTE017_V1): ").strip()
     if not user_input:
         print("  X No subject ID provided. Exiting...")
         time.sleep(2)
         return
-    print(f'  • Subject ID: {user_input}")
+    print("\033[1A", end="")
+    print(f"\033[K[1/4] Subject ID ............................ {user_input}")
     
     # Check if device is connected
-    print("\n[1/4] Check for PeriCam device connection...")
+    print("\n[2/5] Check for PeriCam device connection ... PENDING")
     ans = input('  Is the device connected? [y]/n ')
     if ans.lower() in ['','y']:
-        print('  OK')
+        print("\033[2A", end="")
+        print("\033[K[1/4] Check for PeriCam device connection ... DONE")
+        print("\033[K", end='')
     else:
         print("\n  Device not connected. Exiting...")
         time.sleep(2)
         return
     
     # Continue with normal startup sequence
-    print("\n[2/4] Opening the PeriCam Software suit ...", end='')
+    print("\n[3/5] Opening the PeriCam Software suit .....", end='')
     if open_program(PROGRAM_PATH):
         print(' DONE')
     else:
@@ -170,20 +175,21 @@ def main():
             time.sleep(2)
             return
     
-    print("\n[3/4] Running automated setup sequence ....", end='')
+    print("\n[4/5] Running automated setup sequence ......", end='')
     if automation_sequence(user_input):
         print(' DONE')
     else:
         print('\n  X WARNING: Could not run setup automatically.')
     
-    print("\n[4/4] Starting timer ......................", end='')
+    print("\n[5/5] Starting timer ........................", end='')
     if open_program(PYTHON_SCRIPT_PATH, is_pyscript=True):
         print(' DONE')
     else:
         print('\n  X WARNING: Could not start timer')
-    
-    print(f"\nPress {HOTKEY_COMBINATION} to save clipboard output")
-    print("Press 'ESC' to exit the script\n")
+
+    print('\n[SYS] Setup running normally')
+    print( f"      > Press {HOTKEY_COMBINATION} to save clipboard output")
+    print(  "      > Press 'ESC' to exit the script\n")
     
     keyboard.add_hotkey(HOTKEY_COMBINATION, lambda: save_clipboard_to_csv(user_input))
     keyboard.wait('esc')
