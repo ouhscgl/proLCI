@@ -114,10 +114,13 @@ def save_clipboard_to_csv(user_input):
         
         clipboard_content = pyperclip.paste()
         
+        # Convert tab-separated data to comma-separated
+        csv_content = clipboard_content.replace('\t', ',')
+        
         os.makedirs(save_folder, exist_ok=True)
         csv_path = os.path.join(save_folder, user_input + '_LCI.csv')
         with open(csv_path, 'w', encoding='utf-8') as f:
-            f.write(clipboard_content)
+            f.write(csv_content)
         print(f"  ./ Recording data saved to: {csv_path}")
         
         if BACKUP_TO_ONEDRIVE:
