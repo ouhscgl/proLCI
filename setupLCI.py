@@ -1,12 +1,5 @@
 
-import pyautogui
-import subprocess
-import time
-import keyboard
-import pyperclip
-import os
-import re
-import shutil
+import pyautogui, subprocess, time, keyboard, pyperclip, os, re, shutil
 from colorama import init, Cursor
 init()
 # ==================== CONFIGURATION ====================
@@ -17,15 +10,33 @@ BACKUP_TO_ONEDRIVE = True
 
 HOTKEY_COMBINATION = "ctrl+shift+s"
 
+VERIFY_PIXEL_X     = 1050
+VERIFY_PIXEL_Y     = 510
+VERIFY_PIXEL_COLOR = (217, 226, 235)  # Hex D9E2EB
+
 # OneDrive Project Dictionary
 ONEDRIVE_DICTIONARY = {
     'NRA' : r'C:\Users\zkaposzt\OneDrive - University of Oklahoma\OUHSCGL Shared\Projects\NR Clinical Trial\data\LCI\raws'
     }
 # =======================================================
 
+def wait_for_pixel(x, y, expected_rgb, timeout=120, tolerance=5):
+    for _ in range(timeout):
+        actual = pyautogui.pixel(x, y)
+        if all(abs(a - e) <= tolerance for a, e in zip(actual, expected_rgb)):
+            return True
+        time.sleep(1)
+    return False
+
 def automation_sequence(user_input):
     # Wait for PIMSoft to open
     time.sleep(10)
+
+    # Verify PIMSoft is ready by checking pixel color
+    match, actual = wait_for_pixel(VERIFY_PIXEL_X, VERIFY_PIXEL_Y, VERIFY_PIXEL_COLOR)
+    if not match:
+        return False
+
     # Do not perform validation
     pyautogui.press('enter')
     time.sleep(3)
@@ -75,8 +86,7 @@ def automation_sequence(user_input):
     pyautogui.press('enter')
     return True
 
-
-def open_program(program_path, is_pyscript=False, startup_wait=3, max_retries=10):
+def open_program(program_path, is_pyscript=False, startup_wait=3, timeout=120):
     try:
         if is_pyscript:
             process = subprocess.Popen(['python', program_path])
@@ -85,14 +95,10 @@ def open_program(program_path, is_pyscript=False, startup_wait=3, max_retries=10
             process = subprocess.Popen(program_path, shell=True)
             time.sleep(startup_wait)
             
-            for attempt in range(max_retries):
-                return_code = process.poll()
-                if return_code is None:
+            for _ in range(timeout):
+                if process.poll() is None:
                     return True
-                
-                if attempt < max_retries - 1:
-                    time.sleep(1)
-        
+                time.sleep(1)
             return False
         
     except FileNotFoundError:
@@ -137,34 +143,35 @@ def save_clipboard_to_csv(user_input):
 def main():
     pyautogui.FAILSAFE = True
     
+    # Header for setup sequence
     print("=" * 60)
     print("Laser Speckle-contrast Imaging Setup Toolkit (LASIST)")
     print("  Developed by ZK @ OU/gerolab (2025)")
     print("  Property of The University of Oklahoma.")
     print("=" * 60)
     
-    # Get subject ID
+    # [1] Get subject ID
     user_input = input("\n[1/5] Enter subject ID (e.g.: TTE017_V1): ").strip()
     if not user_input:
         print("  X No subject ID provided. Exiting...")
         time.sleep(2)
         return
     print("\033[1A", end="")
-    print(f"\033[K[1/4] Subject ID ............................ {user_input}")
+    print(f"\033[K[1/5] Subject ID ............................ {user_input}")
     
-    # Check if device is connected
+    # [2] Check if device is connected
     print("\n[2/5] Check for PeriCam device connection ... PENDING")
     ans = input('  Is the device connected? [y]/n ')
     if ans.lower() in ['','y']:
         print("\033[2A", end="")
-        print("\033[K[1/4] Check for PeriCam device connection ... DONE")
+        print("\033[K[2/5] Check for PeriCam device connection ... DONE")
         print("\033[K", end='')
     else:
         print("\n  Device not connected. Exiting...")
         time.sleep(2)
         return
     
-    # Continue with normal startup sequence
+    # [3] Open PeriCam
     print("\n[3/5] Opening the PeriCam Software suit .....", end='')
     if open_program(PROGRAM_PATH):
         print(' DONE')
@@ -178,26 +185,27 @@ def main():
             time.sleep(2)
             return
     
+    # [4] Run setup keycombinations
     print("\n[4/5] Running automated setup sequence ......", end='')
     if automation_sequence(user_input):
         print(' DONE')
     else:
         print('\n  X WARNING: Could not run setup automatically.')
     
+    # [5] Start timer GUI
     print("\n[5/5] Starting timer ........................", end='')
     if open_program(PYTHON_SCRIPT_PATH, is_pyscript=True):
         print(' DONE')
     else:
         print('\n  X WARNING: Could not start timer')
 
+    # Footnote for setup sequence
     print('\n[SYS] Setup running normally')
     print( f"      > Press {HOTKEY_COMBINATION} to save clipboard output")
     print(  "      > Press 'ESC' to exit the script\n")
-    
     keyboard.add_hotkey(HOTKEY_COMBINATION, lambda: save_clipboard_to_csv(user_input))
     keyboard.wait('esc')
     print("\nExiting...")
-
 
 if __name__ == "__main__":
     main()
