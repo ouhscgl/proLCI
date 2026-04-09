@@ -1,24 +1,28 @@
-import subprocess, sys
-
-REQUIRED_PACKAGES = [
-    ('pyautogui', 'pyautogui'),
-    ('keyboard', 'keyboard'),
-    ('pyperclip', 'pyperclip'),
-    ('colorama', 'colorama'),
-]
+import subprocess, sys, os
 
 def check_and_install():
+    """Check and auto-install missing packages from requirements.txt."""
+    req_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'requirements.txt')
+
+    if not os.path.exists(req_path):
+        print(f"  X ERROR: requirements.txt not found at {req_path}")
+        return False
+
+    with open(req_path, 'r') as f:
+        packages = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+
     missing = []
-    
-    for import_name, pip_name in REQUIRED_PACKAGES:
+    for package in packages:
+        # Handle version specifiers (e.g. "package>=1.0") — import name is the base
+        import_name = package.split('>=')[0].split('==')[0].split('<')[0].strip()
         try:
             __import__(import_name)
         except ImportError:
-            missing.append(pip_name)
-    
+            missing.append(package)
+
     if not missing:
         return True
-    
+
     print(f"Installing missing packages: {', '.join(missing)}")
     for package in missing:
         try:

@@ -112,14 +112,46 @@ def open_program(program_path, is_pyscript=False, startup_wait=3, timeout=120):
         return False
 
 
+def verify_saved_file(filepath):
+    """Check that a saved file exists and contains actual data."""
+    if not os.path.isfile(filepath):
+        print(f"  X VERIFY FAILED: File not found at {filepath}")
+        return False
+
+    size = os.path.getsize(filepath)
+    if size == 0:
+        print(f"  X VERIFY FAILED: File is empty (0 bytes)")
+        return False
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        head = f.read(1024)
+
+    stripped = head.strip()
+    if not stripped:
+        print(f"  X VERIFY FAILED: File contains only whitespace")
+        return False
+
+    if ',' not in stripped:
+        print(f"  ! VERIFY WARNING: File has content but no commas — may not be valid CSV")
+        # Not a hard failure; single-column data is technically possible
+    
+    row_count = stripped.count('\n')
+    print(f"  ./ Verified: {size:,} bytes, ~{row_count + 1} rows")
+    return True
+
+
 def save_clipboard_to_csv(user_input):
     try:
         match = re.match(r'^([A-Za-z]+)', user_input)
         folder_name = match.group(1) if match else user_input
-        save_folder = CSV_SAVE_FOLDER.replace('XXX',folder_name)
-        
+        save_folder = CSV_SAVE_FOLDER.replace('XXX', folder_name)
+
         clipboard_content = pyperclip.paste()
-        
+
+        if not clipboard_content or not clipboard_content.strip():
+            print("  X ERROR: Clipboard is empty — nothing to save")
+            return
+
         # Convert tab-separated data to comma-separated
         csv_content = clipboard_content.replace('\t', ',')
         
@@ -128,12 +160,23 @@ def save_clipboard_to_csv(user_input):
         with open(csv_path, 'w', encoding='utf-8') as f:
             f.write(csv_content)
         print(f"  ./ Recording data saved to: {csv_path}")
-        
+
+        # Verify local save
+        if not verify_saved_file(csv_path):
+            print("  X Local file verification failed — skipping OneDrive backup")
+            return
+
         if BACKUP_TO_ONEDRIVE:
+            if folder_name not in ONEDRIVE_DICTIONARY:
+                print(f"  X ERROR: No OneDrive path configured for project '{folder_name}'")
+                return
             dst = os.path.join(ONEDRIVE_DICTIONARY[folder_name], user_input + '_LCI.csv')
             try:
                 shutil.copy(csv_path, dst)
-                print( "  ./ Recording data backed up to OneDrive.")
+                print(f"  ./ Recording data backed up to OneDrive.")
+                # Verify backup
+                if not verify_saved_file(dst):
+                    print("  X OneDrive backup verification failed")
             except Exception as e:
                 print(f"  X ERROR: Failed to back up data to OneDrive: {e}")
     except Exception as e:
