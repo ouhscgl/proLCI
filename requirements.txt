@@ -2,3 +2,5 @@ pyautogui
 keyboard
 pyperclip
 colorama
+pillow
+pywin32
