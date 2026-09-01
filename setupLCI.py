@@ -16,7 +16,7 @@ VERIFY_PIXEL_COLOR = (217, 226, 235)  # Hex D9E2EB
 
 # OneDrive Project Dictionary
 ONEDRIVE_DICTIONARY = {
-    'NRA' : r'C:\Users\zkaposzt\OneDrive - University of Oklahoma\OUHSCGL Shared\Projects\NR Clinical Trial\data\LCI\raws'
+    'NRA' : r'C:\Users\andriylab\OneDrive - University of Oklahoma\OUHSCGL Shared\Projects\14782 NR Clinical Trial\data\LCI\raws'
     }
 # =======================================================
 
@@ -33,8 +33,7 @@ def automation_sequence(user_input):
     time.sleep(10)
 
     # Verify PIMSoft is ready by checking pixel color
-    match, actual = wait_for_pixel(VERIFY_PIXEL_X, VERIFY_PIXEL_Y, VERIFY_PIXEL_COLOR)
-    if not match:
+    if not wait_for_pixel(VERIFY_PIXEL_X, VERIFY_PIXEL_Y, VERIFY_PIXEL_COLOR):
         return False
 
     # Do not perform validation

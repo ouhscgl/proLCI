@@ -5,6 +5,9 @@ REQUIRED_PACKAGES = [
     ('keyboard', 'keyboard'),
     ('pyperclip', 'pyperclip'),
     ('colorama', 'colorama'),
+    ('PIL', 'pillow'),
+    ('win32api', 'pywin32'),
+
 ]
 
 def check_and_install():
