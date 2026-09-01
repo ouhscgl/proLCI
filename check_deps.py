@@ -1,7 +1,14 @@
 import subprocess, sys, os
 
+# pip name -> import name, for packages where the two differ
+IMPORT_NAME_OVERRIDES = {
+    'pillow'        : 'PIL',
+    'pywin32'       : 'win32api',
+    'opencv-python' : 'cv2',
+}
+
 def check_and_install():
-    """Check and auto-install missing packages from requirements.txt."""
+    """Check and auto-install missing packages listed in requirements.txt."""
     req_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'requirements.txt')
 
     if not os.path.exists(req_path):
@@ -13,8 +20,9 @@ def check_and_install():
 
     missing = []
     for package in packages:
-        # Handle version specifiers (e.g. "package>=1.0") — import name is the base
-        import_name = package.split('>=')[0].split('==')[0].split('<')[0].strip()
+        # Strip any version specifier (e.g. "package>=1.0") to get the pip name
+        pip_name = package.split('>=')[0].split('==')[0].split('<')[0].strip()
+        import_name = IMPORT_NAME_OVERRIDES.get(pip_name.lower(), pip_name)
         try:
             __import__(import_name)
         except ImportError:

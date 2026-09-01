@@ -1,10 +1,10 @@
 
-import pyautogui, subprocess, time, keyboard, pyperclip, os, re, shutil
+import pyautogui, subprocess, sys, time, keyboard, pyperclip, os, re, shutil
 from colorama import init, Cursor
 init()
 # ==================== CONFIGURATION ====================
 PROGRAM_PATH       = r"C:\Program Files\Perimed\PIMSoft\PIMSoft.exe"
-PYTHON_SCRIPT_PATH = 'timerLCI.py'
+PYTHON_SCRIPT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'timerLCI.py')
 CSV_SAVE_FOLDER    = r"C:\Projects\XXX\LCI"
 BACKUP_TO_ONEDRIVE = True
 
@@ -16,7 +16,7 @@ VERIFY_PIXEL_COLOR = (217, 226, 235)  # Hex D9E2EB
 
 # OneDrive Project Dictionary
 ONEDRIVE_DICTIONARY = {
-    'NRA' : r'C:\Users\zkaposzt\OneDrive - University of Oklahoma\OUHSCGL Shared\Projects\NR Clinical Trial\data\LCI\raws'
+    'NRA' : r'C:\Users\andriylab\OneDrive - University of Oklahoma\OUHSCGL Shared\Projects\14782 NR Clinical Trial\data\LCI\raws'
     }
 # =======================================================
 
@@ -33,8 +33,7 @@ def automation_sequence(user_input):
     time.sleep(10)
 
     # Verify PIMSoft is ready by checking pixel color
-    match, actual = wait_for_pixel(VERIFY_PIXEL_X, VERIFY_PIXEL_Y, VERIFY_PIXEL_COLOR)
-    if not match:
+    if not wait_for_pixel(VERIFY_PIXEL_X, VERIFY_PIXEL_Y, VERIFY_PIXEL_COLOR):
         return False
 
     # Do not perform validation
@@ -89,7 +88,16 @@ def automation_sequence(user_input):
 def open_program(program_path, is_pyscript=False, startup_wait=3, timeout=120):
     try:
         if is_pyscript:
-            process = subprocess.Popen(['python', program_path])
+            if not os.path.isfile(program_path):
+                print(f"\n  X ERROR: Script not found at {program_path}")
+                return False
+            process = subprocess.Popen([sys.executable, program_path])
+            time.sleep(1)
+            # Popen succeeds even if the script dies immediately; confirm it lives
+            if process.poll() not in (None, 0):
+                print(f"\n  X ERROR: {os.path.basename(program_path)} exited "
+                      f"with code {process.returncode}")
+                return False
             return True
         else:
             process = subprocess.Popen(program_path, shell=True)
